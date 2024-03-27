@@ -1,11 +1,11 @@
-import './App.css';
 import { useMemo, useState } from "react";
 import Chess from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { buttonStyle,stockfishMoveButton,appContainer,sideContainer,chessboardContainer } from './style';
+import { stockfishMoveButton,appContainer,sideContainer,chessboardContainer } from './style';
 import axios from 'axios';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
+import Card from 'react-bootstrap/Card';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Importujte štýly Bootstrap
 
 
@@ -20,17 +20,12 @@ function App() {
   const [depth, setDepth] = useState(13); // Default depth
   const [showModal, setShowModal] = useState(false);
   const [resultMessage, setResultMessage] = useState('');
-  
+  const [moveArrow, setMoveArrow] = useState(null);
 
   // Funkcia na zmenu orientácie šachovnice
   const toggleBoardOrientation = () => {
     setBoardOrientation(boardOrientation === 'white' ? 'black' : 'white');
 };
-
-
-  
-  
-  
 
   async function evaluatePosition() {
     const position = game.fen();
@@ -83,10 +78,11 @@ async function findBestMove() {
           to: bestMove.substring(2, 4),
         });
 
-
+        
         // Update your game's position. This assumes you have a method setGamePosition
         // that takes the current game FEN string to update the app's state
         setGamePosition(game.fen());
+        setMoveArrow(bestMove);
         await getOpening();
         console.log("Checking game over state:", game.game_over());
         if (game.game_over()) {
@@ -106,40 +102,6 @@ async function findBestMove() {
 }
   
 
-//   async function findBestMove() {
-//     if(!isActive) return;
-// const encodedParams = new URLSearchParams();
-// const posiotion_Fen = game.fen();
-// encodedParams.set('fen', posiotion_Fen);
-
-// const options = {
-//   method: 'POST',
-//   url: 'https://chess-stockfish-16-api.p.rapidapi.com/chess/api',
-//   headers: {
-//     'content-type': 'application/x-www-form-urlencoded',
-//     'X-RapidAPI-Key': 'a1bcd16d0fmsh42fe71c09c226b8p1cb35bjsn0ae77f4b35dd',
-//     'X-RapidAPI-Host': 'chess-stockfish-16-api.p.rapidapi.com'
-//   },
-//   data: encodedParams,
-// };
-
-// try {
-// 	const response = await axios.request(options);
-// 	console.log(response.data);
-//    // Extract the best move from the response
-//    const bestMove = response.data.bestmove;
-//    // Apply the best move to the game
-//    game.move({
-//     from: bestMove.substring(0, 2),
-//     to: bestMove.substring(2, 4),
-//   });
-//   setGamePosition(game.fen());
-//   await getOpening();
-// } catch (error) {
-// 	console.error(error);
-// }
-
-//   }
   async function getOpening() {
     const currentFen = game.fen();
     const currentFenPosition = currentFen.split(' ')[0]; // Berieme len prvú časť FEN reťazca // Získanie aktuálnej FEN pozície
@@ -180,6 +142,7 @@ async function findBestMove() {
     if (!game.game_over() && !game.in_draw()) {
       findBestMove();
       evaluatePosition();
+      getOpening();
     }else{
       const result = game.in_draw() ? 'Draw' : (game.in_checkmate() ? 'Checkmate' : 'Game Over');
       setResultMessage(result);
@@ -193,19 +156,23 @@ async function findBestMove() {
   }
   return (
     <div style={appContainer}>
+      
       <div style={sideContainer}>
-        <button style={buttonStyle} onClick={() => { game.reset(); setGamePosition(game.fen()); }}>
-          New game
-        </button>
-        <button style={buttonStyle} onClick={() => { game.undo(); game.undo(); setGamePosition(game.fen()); }}>
-          Undo
-        </button>
-        <button onClick={() => setIsActive(!isActive)} style={isActive ? stockfishMoveButton.activeButton : stockfishMoveButton.inactiveButton}>
-          {isActive ? 'Deactivate ' : 'Activate '} Best Move Finder
-        </button>
-        <button style={buttonStyle} onClick={toggleBoardOrientation}>
-          Rotate Board
-        </button>
+      <div className="d-grid gap-2">
+      <Button variant="outline-dark" size="md" onClick={() => { game.reset(); setGamePosition(game.fen()); setMoveArrow(null) }}>
+        New game
+      </Button>
+      <Button variant="outline-dark" size="md" onClick={() => { game.undo(); game.undo(); setGamePosition(game.fen()); setMoveArrow(null) }}>
+        Undo
+      </Button>
+      <Button variant="outline-dark" size="lg" onClick={() => setIsActive(!isActive)} style={isActive ? stockfishMoveButton.activeButton : stockfishMoveButton.inactiveButton}>
+          {isActive ? 'Deactivate ' : 'Activate '} 
+          Best Move Finder
+      </Button>
+      <Button variant="outline-dark" size="md" onClick={toggleBoardOrientation}>
+        Rotate Board
+      </Button>
+    </div>
       </div>
   
       <div style={chessboardContainer}>
@@ -213,14 +180,25 @@ async function findBestMove() {
           id="PlayVsStockfish"
           position={gamePosition}
           onPieceDrop={onDrop}
+          onSquareClick={function noRefCheck(){}}
           boardOrientation={boardOrientation}
-          style={{ width: '90%', height: 'auto' }} // Ensuring the chessboard is responsive within its container
+          customBoardStyle={{
+            borderRadius: "4px",
+            boxShadow: "0 2px 10px rgba(0, 0, 0, 0.5)",
+          }}
+          // style={{ width: '90%', height: 'auto' }} // Ensuring the chessboard is responsive within its container
+          customArrows={moveArrow ? [[moveArrow.substring(0, 2), moveArrow.substring(2, 4), "rgb(0, 128, 0)"]] : []}
         />
       </div>
   
       <div style={sideContainer}>
-        <p>Evaluation: {evaluation}</p>
-        <p>Opening: {opening ? opening.name : 'Unknown'}</p>
+        <Card style={{ width: '18rem' }} bg="dark" text="white" border="light">
+          <Card.Body>Evaluation: {evaluation}</Card.Body>
+        </Card>
+        <Card style={{ width: '18rem' }}bg="dark" text="white" border="light">
+          <Card.Body>Opening: {opening ? opening.name : 'Unknown'}</Card.Body>
+        </Card>
+        
         <div>
           <label htmlFor="depth">Depth:</label>
           <input
@@ -239,13 +217,14 @@ async function findBestMove() {
             </Modal.Header>
             <Modal.Body>{resultMessage}</Modal.Body>
             <Modal.Footer>
-                <Button variant="secondary" onClick={() => setShowModal(false)}>
+                <Button variant="secondary" onClick={() => {setShowModal(false); setMoveArrow(null)}}>
                     Close
                 </Button>
                 <Button variant="primary" onClick={() => {
                     setShowModal(false);
                     game.reset();
                     setGamePosition(game.fen());
+                    setMoveArrow(null);
                     // Akékoľvek ďalšie akcie na reštart hry
                 }}>
                     New Game
