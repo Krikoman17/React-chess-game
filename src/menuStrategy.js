@@ -29,7 +29,7 @@ function MenuStrategy() {
 return (
     <Card className="text-center menu-strategy">
         <Card.Header as="h5">My Openings</Card.Header>
-        <Card.Body>
+        <Card.Body style={{backgroundColor:"#1A1A1D"}}>
             {isLoading ? (
                 <p>Loading openings...</p>
             ) : error ? (
@@ -39,7 +39,7 @@ return (
                     {openings.map((opening) => (
                         <Row key={opening.id}>
                             <Col>
-                                <Button variant="dark" style={{ marginBottom: '1rem', width: '30%' }}
+                                <Button variant="outline-light" style={{ marginBottom: '1rem', width: '30%' }}
                                 onClick={()=> navigate(`/strategies/${opening.id}`)}>
                                     {opening.name}
                                 </Button>

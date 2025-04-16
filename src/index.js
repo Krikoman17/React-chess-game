@@ -5,6 +5,8 @@ import App from './App';
 import Home from './Home';
 import MenuStrategy from './menuStrategy';
 import StrategyBoard from './strategyBoard';
+import WorldChessMenu from './worldChessMenu';
+import FideGames from './fideGames';
 import './styles.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -16,6 +18,8 @@ root.render(
         <Route path="/app" element={<App />} />
         <Route path="/strategies" element={<MenuStrategy />} />
         <Route path="/strategies/:id" element={<StrategyBoard />} />
+        <Route path="/world-chess-menu" element={<WorldChessMenu />} />
+        <Route path="/world-chess-menu/:id" element={<FideGames />} />
       </Routes>
     </Router>
   </React.StrictMode>

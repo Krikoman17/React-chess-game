@@ -6,6 +6,7 @@ import axios from 'axios';
 import Modal from 'react-bootstrap/Modal';
 import Button from 'react-bootstrap/Button';
 import Card from 'react-bootstrap/Card';
+import Form from 'react-bootstrap/Form';
 import 'bootstrap/dist/css/bootstrap.min.css'; // Importujte štýly Bootstrap
 
 
@@ -33,7 +34,7 @@ function App() {
     const mode = "eval"
     const options_1 = {
       method: 'GET',
-      url: 'https://stockfish.online/api/stockfish.php',
+      url: 'https://stockfish.online/api/s/v2.php',
       params: {
         fen: position,
         depth: depth,
@@ -44,7 +45,6 @@ function App() {
     try {
       const response = await axios.request(options_1);
       setEvaluation(response.data.data);
-      //how to display the evaluation on website
       console.log(evaluation);
 
     } catch (error) {
@@ -67,20 +67,12 @@ async function findBestMove() {
   try {
     const response = await axios.request(options_2);
     if (response.data && response.data.success) {
-      // Assuming the best move is in the format "bestmove [move] ponder [move]"
-      // We split the string and take the second element (the move)
       const bestMove = response.data.bestmove.split(' ')[1];
       if (bestMove) {
-        // Apply the best move to the game. This assumes your game object
-        // has a method called 'move' that accepts moves in the format { from: 'b7', to: 'b6' }
         game.move({
           from: bestMove.substring(0, 2),
           to: bestMove.substring(2, 4),
         });
-
-        
-        // Update your game's position. This assumes you have a method setGamePosition
-        // that takes the current game FEN string to update the app's state
         setGamePosition(game.fen());
         setMoveArrow(bestMove);
         await getOpening();
@@ -104,7 +96,7 @@ async function findBestMove() {
 
   async function getOpening() {
     const currentFen = game.fen();
-    const currentFenPosition = currentFen.split(' ')[0]; // Berieme len prvú časť FEN reťazca // Získanie aktuálnej FEN pozície
+    const currentFenPosition = currentFen.split(' ')[0]; // Berieme len prvú časť FEN reťazca  Získanie aktuálnej FEN pozície
     console.log("Current FEN:", currentFen);
     const options_2 = {
       method: 'GET',
@@ -150,7 +142,6 @@ async function findBestMove() {
     }
 
     
-    //getOpening();
 
     return true;
   }
@@ -159,17 +150,17 @@ async function findBestMove() {
       
       <div style={sideContainer}>
       <div className="d-grid gap-2">
-      <Button variant="outline-dark" size="md" onClick={() => { game.reset(); setGamePosition(game.fen()); setMoveArrow(null) }}>
+      <Button variant="outline-light" size="md" onClick={() => { game.reset(); setGamePosition(game.fen()); setMoveArrow(null) }}>
         New game
       </Button>
-      <Button variant="outline-dark" size="md" onClick={() => { game.undo(); game.undo(); setGamePosition(game.fen()); setMoveArrow(null) }}>
+      <Button variant="outline-light" size="md" onClick={() => { game.undo(); game.undo(); setGamePosition(game.fen()); setMoveArrow(null) }}>
         Undo
       </Button>
-      <Button variant="outline-dark" size="lg" onClick={() => setIsActive(!isActive)} style={isActive ? stockfishMoveButton.activeButton : stockfishMoveButton.inactiveButton}>
+      <Button variant="outline-light" size="lg" onClick={() => setIsActive(!isActive)} style={isActive ? stockfishMoveButton.activeButton : stockfishMoveButton.inactiveButton}>
           {isActive ? 'Deactivate ' : 'Activate '} 
           Best Move Finder
       </Button>
-      <Button variant="outline-dark" size="md" onClick={toggleBoardOrientation}>
+      <Button variant="outline-light" size="md" onClick={toggleBoardOrientation}>
         Rotate Board
       </Button>
     </div>
@@ -200,16 +191,17 @@ async function findBestMove() {
         </Card>
         
         <div>
-          <label htmlFor="depth">Depth:</label>
-          <input
-            id="depth"
-            type="number"
-            value={depth}
-            onChange={(e) => setDepth(Math.min(15, Math.max(1, parseInt(e.target.value, 10))))}
-            min="1"
-            max="15"
-          />
-        </div>
+          <Form.Group controlId="depth" style={{color:"white"}}>
+            <Form.Label>Depth:</Form.Label>
+            <Form.Control
+              type="number"
+              value={depth}
+              onChange={(e) => setDepth(Math.min(15, Math.max(1, parseInt(e.target.value, 10))))}
+              min="1"
+              max="15"
+              />
+      </Form.Group>
+      </div>
       </div>
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
             <Modal.Header closeButton>
